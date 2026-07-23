@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -26,7 +26,7 @@ function App() {
   return (
     <Router>
       <ScrollRestoration />
-      <div className="min-h-screen flex flex-col justify-between bg-gray-50 dark:bg-[#070a12] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200">
+      <div className="min-h-screen flex flex-col justify-between bg-gray-50 dark:bg-navy-950 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200">
         <Navbar />
 
         <div className="flex-1">
