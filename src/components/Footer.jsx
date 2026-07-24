@@ -70,16 +70,16 @@ const Footer = () => {
                 <Link to="/" className="hover:text-purple-400 transition-colors">Home</Link>
               </li>
               <li>
-                <Link to="/templates" className="hover:text-purple-400 transition-colors">All 1000+ Templates</Link>
+                <Link to="/blog" className="hover:text-purple-400 transition-colors">Blog & Articles</Link>
               </li>
               <li>
-                <Link to="/pricing" className="hover:text-purple-400 transition-colors">Pricing Plans</Link>
+                <Link to="/plugins" className="hover:text-purple-400 transition-colors">Plugins & Extensions</Link>
+              </li>
+              <li>
+                <Link to="/ui-kits" className="hover:text-purple-400 transition-colors">UI Kits & Systems</Link>
               </li>
               <li>
                 <Link to="/help" className="hover:text-purple-400 transition-colors">Help Center & FAQ</Link>
-              </li>
-              <li>
-                <Link to="/category/saas" className="hover:text-purple-400 transition-colors">SaaS & React Apps</Link>
               </li>
             </ul>
           </div>

@@ -104,11 +104,26 @@ const Navbar = () => {
             )}
           </div>
 
-          <Link to="/category/saas" className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 hover:bg-gray-50 rounded-lg transition-colors">Plugins</Link>
-          <Link to="/templates" className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 hover:bg-gray-50 rounded-lg transition-colors">Templates</Link>
-          <Link to="/category/creative" className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 hover:bg-gray-50 rounded-lg transition-colors">UI Kits</Link>
-          <Link to="/pricing" className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${isActive('/pricing') ? 'text-purple-600 bg-purple-50' : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'}`}>Pricing</Link>
-          <Link to="/help" className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${isActive('/help') ? 'text-purple-600 bg-purple-50' : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'}`}>Help</Link>
+          <Link
+            to="/blog"
+            className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
+              isActive('/blog')
+                ? 'text-purple-600 bg-purple-50'
+                : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+            }`}
+          >
+            Blog
+          </Link>
+          <Link
+            to="/help"
+            className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
+              isActive('/help')
+                ? 'text-purple-600 bg-purple-50'
+                : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+            }`}
+          >
+            Help
+          </Link>
         </nav>
 
         {/* Right Actions */}
@@ -267,8 +282,8 @@ const Navbar = () => {
               ))}
             </div>
           </div>
-          <Link to="/templates" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">All Templates</Link>
-          <Link to="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">Pricing</Link>
+
+          <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">Blog</Link>
           <Link to="/help" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">Help & FAQ</Link>
           <button onClick={() => { setIsMobileMenuOpen(false); openAuth('login'); }} className="w-full py-2 text-center text-sm font-semibold border border-gray-300 rounded-xl">Login</button>
         </div>

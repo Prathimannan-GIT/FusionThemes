@@ -6,7 +6,10 @@ import Home from './pages/Home';
 import CategoryPage from './pages/CategoryPage';
 import TemplateDetail from './pages/TemplateDetail';
 import AllTemplatesPage from './pages/AllTemplatesPage';
-import PricingPage from './pages/PricingPage';
+import PluginsPage from './pages/PluginsPage';
+import UiKitsPage from './pages/UiKitsPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import HelpPage from './pages/HelpPage';
 import LivePreviewModal from './components/LivePreviewModal';
 import CartDrawer from './components/CartDrawer';
@@ -34,8 +37,10 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/template/:id" element={<TemplateDetail />} />
-            <Route path="/templates" element={<AllTemplatesPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/plugins" element={<PluginsPage />} />
+            <Route path="/ui-kits" element={<UiKitsPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:id" element={<BlogPostPage />} />
             <Route path="/help" element={<HelpPage />} />
           </Routes>
         </div>
