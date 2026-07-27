@@ -14,6 +14,7 @@ import HelpPage from './pages/HelpPage';
 import LivePreviewModal from './components/LivePreviewModal';
 import CartDrawer from './components/CartDrawer';
 import AuthModal from './components/AuthModal';
+import CheckoutModal from './components/CheckoutModal';
 import NotificationToast from './components/NotificationToast';
 
 // Scroll to top on route change
@@ -51,6 +52,7 @@ function App() {
         <LivePreviewModal />
         <CartDrawer />
         <AuthModal />
+        <CheckoutModal />
         <NotificationToast />
       </div>
     </Router>

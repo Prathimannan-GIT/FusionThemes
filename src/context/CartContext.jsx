@@ -13,6 +13,8 @@ export const CartProvider = ({ children }) => {
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [checkoutItems, setCheckoutItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [livePreviewTemplate, setLivePreviewTemplate] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -79,6 +81,10 @@ export const CartProvider = ({ children }) => {
       clearCart,
       isCartOpen,
       setIsCartOpen,
+      isCheckoutOpen,
+      setIsCheckoutOpen,
+      checkoutItems,
+      setCheckoutItems,
       totalAmount,
       searchQuery,
       setSearchQuery,

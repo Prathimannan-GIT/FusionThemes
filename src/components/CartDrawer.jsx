@@ -4,7 +4,15 @@ import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 
 const CartDrawer = () => {
-  const { cartItems, isCartOpen, setIsCartOpen, removeFromCart, clearCart, totalAmount, showNotification } = useCart();
+  const { 
+    cartItems, 
+    isCartOpen, 
+    setIsCartOpen, 
+    removeFromCart, 
+    totalAmount, 
+    setIsCheckoutOpen, 
+    setCheckoutItems 
+  } = useCart();
   const { formatPrice, selectedCurrency } = useCurrency();
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -25,13 +33,12 @@ const CartDrawer = () => {
   const finalTotal = totalAmount * (1 - discount);
 
   const handleCheckout = () => {
-    setIsCheckingOut(true);
-    setTimeout(() => {
-      setIsCheckingOut(false);
-      clearCart();
-      setIsCartOpen(false);
-      showNotification('Order completed successfully! Downloads available in account.', 'success');
-    }, 1500);
+    // Populate checkout items with current cart items
+    setCheckoutItems([...cartItems]);
+    // Close cart drawer
+    setIsCartOpen(false);
+    // Open checkout modal
+    setIsCheckoutOpen(true);
   };
 
   return (

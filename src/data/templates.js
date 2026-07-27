@@ -13,7 +13,7 @@ export const templates = [
     isTrending: true,
     image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
     bannerImage: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-    demoUrl: 'https://example.com/demo/consultix',
+    demoUrl: 'https://htmlstaticworks.github.io/Freelance_Podcast_Producer_Editor/',
     tags: ['Corporate', 'Consulting', 'Finance', 'Agency', 'React', 'Tailwind'],
     description: 'Consultix is a sleek, ultra-responsive React & HTML website template tailored for business consultants, corporate firms, financial advisors, and investment agencies. Includes 25+ inner pages, slick slider hero, live contact forms, and customizable theme settings.',
     features: [
@@ -327,7 +327,7 @@ export const templates = [
     isTrending: false,
     image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
     bannerImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
-    demoUrl: 'https://example.com/demo/beatwave',
+    demoUrl: 'https://htmlstaticworks.github.io/Freelance_Podcast_Producer_Editor/',
     tags: ['Music', 'Podcast', 'Artist', 'Audio Player', 'Events'],
     description: 'BeatWave is built for musicians, DJs, podcasters, and record labels with sticky audio player bar, discography listings, and tour date ticket links.',
     features: [

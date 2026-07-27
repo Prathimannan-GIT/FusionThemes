@@ -5,9 +5,11 @@ import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 
 const TemplateCard = ({ template }) => {
-  const { addToCart, setLivePreviewTemplate, bookmarks, toggleBookmark } = useCart();
+  const { addToCart, bookmarks, toggleBookmark } = useCart();
   const { formatPrice } = useCurrency();
   const isBookmarked = bookmarks.includes(template.id);
+  // Only treat as a live URL if it exists and is NOT a placeholder
+  const isLiveUrl = template.demoUrl && !template.demoUrl.includes('example.com');
 
   return (
     <div className="group bg-white dark:bg-navy-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1 hover:border-purple-200 dark:hover:border-purple-800/60 flex flex-col justify-between">
@@ -23,13 +25,22 @@ const TemplateCard = ({ template }) => {
         {/* Hover Overlay with Action Buttons */}
         <div className="absolute inset-0 bg-navy-950/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 p-4 backdrop-blur-xs">
           
-          <button
-            onClick={() => setLivePreviewTemplate(template)}
-            className="px-4 py-2.5 bg-white text-navy-900 font-bold text-xs rounded-xl shadow-lg hover:bg-purple-600 hover:text-white transition-all flex items-center gap-1.5 transform hover:scale-105 active:scale-95"
-          >
-            <Eye className="w-4 h-4" />
-            Live Demo
-          </button>
+          {isLiveUrl ? (
+            <a
+              href={template.demoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2.5 bg-white text-navy-900 font-bold text-xs rounded-xl shadow-lg hover:bg-purple-600 hover:text-white transition-all flex items-center gap-1.5 transform hover:scale-105 active:scale-95"
+            >
+              <Eye className="w-4 h-4" />
+              Live Demo
+            </a>
+          ) : (
+            <span className="px-4 py-2.5 bg-white/30 text-white/60 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-not-allowed select-none">
+              <Eye className="w-4 h-4" />
+              Coming Soon
+            </span>
+          )}
 
           <Link
             to={`/template/${template.id}`}

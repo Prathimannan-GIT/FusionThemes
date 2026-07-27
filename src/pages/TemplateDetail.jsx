@@ -25,6 +25,8 @@ const TemplateDetail = () => {
   const { formatPrice } = useCurrency();
   const isBookmarked = bookmarks.includes(template.id);
   const [activeTab, setActiveTab] = useState('overview');
+  // Only treat as live if demoUrl exists and isn't a placeholder
+  const isLiveUrl = template.demoUrl && !template.demoUrl.includes('example.com');
 
   const related = templates.filter(t => t.category === template.category && t.id !== template.id).slice(0, 4);
 
@@ -66,13 +68,22 @@ const TemplateDetail = () => {
                 <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
               </button>
 
-              <button
-                onClick={() => setLivePreviewTemplate(template)}
-                className="px-5 py-3 bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 font-bold text-sm rounded-xl border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition-colors flex items-center gap-2"
-              >
-                <Eye className="w-4 h-4" />
-                Live Demo Preview
-              </button>
+              {isLiveUrl ? (
+                <a
+                  href={template.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-3 bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 font-bold text-sm rounded-xl border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition-colors flex items-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  Live Demo
+                </a>
+              ) : (
+                <span className="px-5 py-3 bg-gray-100 dark:bg-navy-800 text-gray-400 dark:text-gray-500 font-bold text-sm rounded-xl border border-gray-200 dark:border-gray-700 flex items-center gap-2 cursor-not-allowed select-none">
+                  <Eye className="w-4 h-4" />
+                  Demo Coming Soon
+                </span>
+              )}
             </div>
           </div>
 
