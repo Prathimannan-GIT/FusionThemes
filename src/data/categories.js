@@ -118,5 +118,25 @@ export const categories = [
     color: 'text-teal-600 bg-teal-50 dark:bg-teal-950/40 dark:text-teal-400',
     borderColor: 'border-teal-200 dark:border-teal-800/40',
     description: 'Software-as-a-service web apps, mobile app landing pages, and APIs.'
+  },
+  {
+    id: 'construction',
+    slug: 'construction',
+    name: 'Construction',
+    count: 42,
+    icon: 'HardHat',
+    color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/40 dark:text-yellow-400',
+    borderColor: 'border-yellow-200 dark:border-yellow-800/40',
+    description: 'Building, architecture, engineering, and renovation templates.'
+  },
+  {
+    id: 'automotive',
+    slug: 'automotive',
+    name: 'Automotive',
+    count: 36,
+    icon: 'Car',
+    color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40 dark:text-sky-400',
+    borderColor: 'border-sky-200 dark:border-sky-800/40',
+    description: 'Car dealerships, auto repair, rental agencies, and parts stores.'
   }
 ];

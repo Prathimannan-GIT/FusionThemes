@@ -5,7 +5,9 @@ import {
   ChevronDown,
   Menu,
   X,
-  Check
+  Check,
+  User,
+  LogOut
 } from 'lucide-react';
 import Logo from './Logo';
 import { useCart } from '../context/CartContext';
@@ -13,23 +15,28 @@ import { useCurrency, currencies } from '../context/CurrencyContext';
 import { categories } from '../data/categories';
 
 const Navbar = () => {
-  const { cartItems, setIsCartOpen, openAuth } = useCart();
+  const { cartItems, setIsCartOpen, openAuth, currentUser, logoutUser } = useCart();
   const { selectedCurrency, changeCurrency } = useCurrency();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isThemesHovered, setIsThemesHovered] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [currencySearch, setCurrencySearch] = useState('');
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const currencyRef = useRef(null);
+  const userRef = useRef(null);
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
 
-  // Close currency dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (currencyRef.current && !currencyRef.current.contains(e.target)) {
         setIsCurrencyOpen(false);
         setCurrencySearch('');
+      }
+      if (userRef.current && !userRef.current.contains(e.target)) {
+        setIsUserDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -244,21 +251,70 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Login Button */}
-          <button
-            onClick={() => openAuth('login')}
-            className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 hover:bg-gray-100 rounded-xl transition-colors border border-gray-200 hover:border-purple-300"
-          >
-            Login
-          </button>
+          {currentUser ? (
+            <div className="relative" ref={userRef}>
+              <button
+                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                className="flex items-center gap-2 p-1 border border-gray-100 rounded-full hover:bg-gray-50 transition-all duration-200"
+              >
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white font-extrabold text-xs flex items-center justify-center shadow-sm">
+                  {currentUser.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:block text-left mr-1">
+                  <div className="text-xs font-bold text-gray-900 leading-tight truncate max-w-[90px]">{currentUser.name}</div>
+                  <div className="text-[9px] font-extrabold uppercase tracking-wide text-purple-600 leading-none mt-0.5">{currentUser.role}</div>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400 mr-1.5" />
+              </button>
 
-          {/* Sign Up Pill */}
-          <button
-            onClick={() => openAuth('signup')}
-            className="px-5 py-2.5 text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-full shadow-md shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-200 active:scale-95"
-          >
-            Sign Up
-          </button>
+              {isUserDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="px-4 py-2 border-b border-gray-100 mb-1.5">
+                    <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Account</p>
+                    <p className="text-xs font-bold text-gray-900 truncate mt-0.5">{currentUser.email}</p>
+                  </div>
+
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsUserDropdownOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                  >
+                    <User className="w-4 h-4 text-purple-500" />
+                    <span>My Dashboard</span>
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      setIsUserDropdownOpen(false);
+                      logoutUser();
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-500" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Login Button */}
+              <button
+                onClick={() => openAuth('login')}
+                className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 hover:bg-gray-100 rounded-xl transition-colors border border-gray-200 hover:border-purple-300"
+              >
+                Login
+              </button>
+
+              {/* Sign Up Pill */}
+              <button
+                onClick={() => openAuth('signup')}
+                className="px-5 py-2.5 text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-full shadow-md shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-200 active:scale-95"
+              >
+                Sign Up
+              </button>
+            </>
+          )}
 
           {/* Mobile Menu Toggle */}
           <button
@@ -285,7 +341,32 @@ const Navbar = () => {
 
           <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">Blog</Link>
           <Link to="/help" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">Help & FAQ</Link>
-          <button onClick={() => { setIsMobileMenuOpen(false); openAuth('login'); }} className="w-full py-2 text-center text-sm font-semibold border border-gray-300 rounded-xl">Login</button>
+          
+          {currentUser ? (
+            <div className="space-y-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-3 px-3 py-1">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white font-extrabold text-xs flex items-center justify-center shadow-sm">
+                  {currentUser.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-gray-800 leading-tight">{currentUser.name}</div>
+                  <div className="text-[10px] font-extrabold uppercase tracking-wide text-purple-600 leading-none mt-0.5">{currentUser.role}</div>
+                </div>
+              </div>
+              <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">My Dashboard</Link>
+              <button 
+                onClick={() => { setIsMobileMenuOpen(false); logoutUser(); }} 
+                className="w-full py-2.5 text-center text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl"
+              >
+                Log Out
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2 pt-2 border-t border-gray-100">
+              <button onClick={() => { setIsMobileMenuOpen(false); openAuth('login'); }} className="w-full py-2.5 text-center text-xs font-bold border border-gray-200 rounded-xl">Login</button>
+              <button onClick={() => { setIsMobileMenuOpen(false); openAuth('signup'); }} className="w-full py-2.5 text-center text-xs font-bold text-white bg-purple-600 rounded-xl">Sign Up</button>
+            </div>
+          )}
         </div>
       )}
     </header>

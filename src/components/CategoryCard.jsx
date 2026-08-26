@@ -13,7 +13,9 @@ import {
   Film,
   Rocket,
   Cloud,
-  ChevronRight
+  ChevronRight,
+  HardHat,
+  Car
 } from 'lucide-react';
 
 const iconMap = {
@@ -28,7 +30,9 @@ const iconMap = {
   Building2,
   Film,
   Rocket,
-  Cloud
+  Cloud,
+  HardHat,
+  Car
 };
 
 const CategoryCard = ({ category }) => {

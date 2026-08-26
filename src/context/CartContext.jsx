@@ -21,6 +21,24 @@ export const CartProvider = ({ children }) => {
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [bookmarks, setBookmarks] = useState([]);
   const [notification, setNotification] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fusion-user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const loginUser = (user) => {
+    setCurrentUser(user);
+    localStorage.setItem('fusion-user', JSON.stringify(user));
+  };
+
+  const logoutUser = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('fusion-user');
+  };
 
   useEffect(() => {
     localStorage.setItem('fusion-cart', JSON.stringify(cartItems));
@@ -98,7 +116,10 @@ export const CartProvider = ({ children }) => {
       bookmarks,
       toggleBookmark,
       notification,
-      showNotification
+      showNotification,
+      currentUser,
+      loginUser,
+      logoutUser
     }}>
       {children}
     </CartContext.Provider>

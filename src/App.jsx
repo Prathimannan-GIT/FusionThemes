@@ -11,6 +11,7 @@ import UiKitsPage from './pages/UiKitsPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import HelpPage from './pages/HelpPage';
+import Dashboard from './pages/Dashboard';
 import LivePreviewModal from './components/LivePreviewModal';
 import CartDrawer from './components/CartDrawer';
 import AuthModal from './components/AuthModal';
@@ -43,6 +44,8 @@ function App() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:id" element={<BlogPostPage />} />
             <Route path="/help" element={<HelpPage />} />
+            <Route path="/templates" element={<AllTemplatesPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </div>
 
