@@ -1,33 +1,20 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Search, Filter, ArrowUpDown, ChevronRight, Layers, Sparkles } from 'lucide-react';
-import { categories } from '../data/categories';
-import { templates } from '../data/templates';
+import { useTemplates } from '../context/TemplateContext';
 import TemplateCard from '../components/TemplateCard';
 
 const CategoryPage = () => {
   const { slug } = useParams();
-  const category = categories.find(c => c.slug === slug) || categories[0];
+  const { templates, categories } = useTemplates();
+  const category = categories.find(c => c.slug === slug) || categories[0] || { name: 'Category', slug, description: '' };
   
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('popular'); // 'popular', 'price-low', 'price-high', 'rating'
 
   // Filter templates by category
   let categoryTemplates = templates.filter(t => t.category === category.slug || t.category === category.id);
-  
-  // If specific category has fewer templates in mock set, generate populated list using dataset
-  if (categoryTemplates.length < 4) {
-    categoryTemplates = [
-      ...categoryTemplates,
-      ...templates.map((t, idx) => ({
-        ...t,
-        id: `${t.id}-${category.slug}-${idx}`,
-        category: category.slug,
-        categoryName: category.name,
-        title: `${category.name} Theme ${idx + 1} - ${t.title.split('-')[0]}`
-      }))
-    ].slice(0, 12);
-  }
+
 
   // Apply search query filter
   if (search.trim()) {
@@ -67,7 +54,7 @@ const CategoryPage = () => {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-900/40 border border-purple-700/50 text-purple-300 text-xs font-bold mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                <span>{category.count}+ Templates Available</span>
+                <span>{categoryTemplates.length} {categoryTemplates.length === 1 ? 'Template' : 'Templates'} Available</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
                 {category.name} Templates

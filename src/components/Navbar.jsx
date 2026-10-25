@@ -7,15 +7,17 @@ import {
   X,
   Check,
   User,
-  LogOut
+  LogOut,
+  LayoutDashboard
 } from 'lucide-react';
 import Logo from './Logo';
 import { useCart } from '../context/CartContext';
 import { useCurrency, currencies } from '../context/CurrencyContext';
-import { categories } from '../data/categories';
+import { useTemplates } from '../context/TemplateContext';
 
 const Navbar = () => {
   const { cartItems, setIsCartOpen, openAuth, currentUser, logoutUser } = useCart();
+  const { categories } = useTemplates();
   const { selectedCurrency, changeCurrency } = useCurrency();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isThemesHovered, setIsThemesHovered] = useState(false);
@@ -60,11 +62,10 @@ const Navbar = () => {
         <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
           <Link
             to="/"
-            className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
-              isActive('/')
+            className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${isActive('/')
                 ? 'text-purple-600 bg-purple-50'
                 : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
-            }`}
+              }`}
           >
             Home
           </Link>
@@ -76,11 +77,10 @@ const Navbar = () => {
             onMouseLeave={() => setIsThemesHovered(false)}
           >
             <button
-              className={`px-3 py-2 text-sm font-semibold rounded-lg inline-flex items-center gap-1 transition-colors ${
-                location.pathname.startsWith('/category') || location.pathname.startsWith('/templates')
+              className={`px-3 py-2 text-sm font-semibold rounded-lg inline-flex items-center gap-1 transition-colors ${location.pathname.startsWith('/category') || location.pathname.startsWith('/templates')
                   ? 'text-purple-600 bg-purple-50'
                   : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
-              }`}
+                }`}
             >
               Themes
               <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isThemesHovered ? 'rotate-180 text-purple-600' : ''}`} />
@@ -89,7 +89,7 @@ const Navbar = () => {
             {isThemesHovered && (
               <div className="absolute top-full left-0 w-[540px] p-4 bg-white rounded-2xl shadow-2xl border border-gray-100 grid grid-cols-2 gap-2 z-50">
                 <div className="col-span-2 px-3 py-1 mb-1 border-b border-gray-100 flex justify-between items-center">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Browse 12 Categories</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Browse 18 Categories</span>
                   <Link to="/templates" className="text-xs font-semibold text-purple-600 hover:underline">View All 1000+ →</Link>
                 </div>
                 {categories.map((cat) => (
@@ -112,22 +112,11 @@ const Navbar = () => {
           </div>
 
           <Link
-            to="/blog"
-            className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
-              isActive('/blog')
-                ? 'text-purple-600 bg-purple-50'
-                : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
-            }`}
-          >
-            Blog
-          </Link>
-          <Link
             to="/help"
-            className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
-              isActive('/help')
+            className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${isActive('/help')
                 ? 'text-purple-600 bg-purple-50'
                 : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
-            }`}
+              }`}
           >
             Help
           </Link>
@@ -140,11 +129,10 @@ const Navbar = () => {
           <div className="relative" ref={currencyRef}>
             <button
               onClick={() => { setIsCurrencyOpen(!isCurrencyOpen); setCurrencySearch(''); }}
-              className={`flex items-center gap-2 px-3 py-2.5 bg-gray-50 border rounded-xl transition-all duration-200 font-semibold group ${
-                isCurrencyOpen
+              className={`flex items-center gap-2 px-3 py-2.5 bg-gray-50 border rounded-xl transition-all duration-200 font-semibold group ${isCurrencyOpen
                   ? 'border-purple-400 bg-purple-50 text-purple-600 shadow-md shadow-purple-100'
                   : 'border-gray-200 hover:border-purple-400 hover:bg-purple-50 text-gray-700 hover:text-purple-600'
-              }`}
+                }`}
               title="Select Currency"
             >
               {/* Selected country FLAG — replaces globe icon */}
@@ -192,9 +180,8 @@ const Navbar = () => {
                           setIsCurrencyOpen(false);
                           setCurrencySearch('');
                         }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-purple-50 transition-colors group ${
-                          selectedCurrency.code === currency.code ? 'bg-purple-50' : ''
-                        }`}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-purple-50 transition-colors group ${selectedCurrency.code === currency.code ? 'bg-purple-50' : ''
+                          }`}
                       >
                         <div className="flex items-center gap-3">
                           {/* FLAG EMOJI — large, no text abbreviation */}
@@ -210,11 +197,10 @@ const Navbar = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-lg border ${
-                            selectedCurrency.code === currency.code
+                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-lg border ${selectedCurrency.code === currency.code
                               ? 'text-purple-700 bg-purple-100 border-purple-200'
                               : 'text-purple-600 bg-purple-50 border-purple-100'
-                          }`}>
+                            }`}>
                             {currency.symbol}&nbsp;{currency.code}
                           </span>
                           {selectedCurrency.code === currency.code && (
@@ -251,6 +237,20 @@ const Navbar = () => {
             )}
           </button>
 
+          {/* Dashboard Icon Button */}
+          <Link
+            to="/dashboard"
+            className={`relative p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center ${
+              isActive('/dashboard')
+                ? 'bg-purple-100 text-purple-700 shadow-sm'
+                : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+            }`}
+            title="Dashboard"
+            aria-label="Dashboard"
+          >
+            <LayoutDashboard className="w-5 h-5" />
+          </Link>
+
           {currentUser ? (
             <div className="relative" ref={userRef}>
               <button
@@ -279,7 +279,7 @@ const Navbar = () => {
                     onClick={() => setIsUserDropdownOpen(false)}
                     className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
                   >
-                    <User className="w-4 h-4 text-purple-500" />
+                    <LayoutDashboard className="w-4 h-4 text-purple-500" />
                     <span>My Dashboard</span>
                   </Link>
 
@@ -298,15 +298,7 @@ const Navbar = () => {
             </div>
           ) : (
             <>
-              {/* Login Button */}
-              <button
-                onClick={() => openAuth('login')}
-                className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 hover:bg-gray-100 rounded-xl transition-colors border border-gray-200 hover:border-purple-300"
-              >
-                Login
-              </button>
-
-              {/* Sign Up Pill */}
+              {/* Sign Up Pill (Login menu replaced by Dashboard icon) */}
               <button
                 onClick={() => openAuth('signup')}
                 className="px-5 py-2.5 text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-full shadow-md shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-200 active:scale-95"
@@ -339,9 +331,8 @@ const Navbar = () => {
             </div>
           </div>
 
-          <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">Blog</Link>
           <Link to="/help" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">Help & FAQ</Link>
-          
+
           {currentUser ? (
             <div className="space-y-2 pt-2 border-t border-gray-100">
               <div className="flex items-center gap-3 px-3 py-1">
@@ -353,9 +344,12 @@ const Navbar = () => {
                   <div className="text-[10px] font-extrabold uppercase tracking-wide text-purple-600 leading-none mt-0.5">{currentUser.role}</div>
                 </div>
               </div>
-              <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">My Dashboard</Link>
-              <button 
-                onClick={() => { setIsMobileMenuOpen(false); logoutUser(); }} 
+              <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg font-semibold text-gray-800 hover:bg-purple-50">
+                <LayoutDashboard className="w-4 h-4 text-purple-600" />
+                <span>My Dashboard</span>
+              </Link>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); logoutUser(); }}
                 className="w-full py-2.5 text-center text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl"
               >
                 Log Out
@@ -363,8 +357,20 @@ const Navbar = () => {
             </div>
           ) : (
             <div className="space-y-2 pt-2 border-t border-gray-100">
-              <button onClick={() => { setIsMobileMenuOpen(false); openAuth('login'); }} className="w-full py-2.5 text-center text-xs font-bold border border-gray-200 rounded-xl">Login</button>
-              <button onClick={() => { setIsMobileMenuOpen(false); openAuth('signup'); }} className="w-full py-2.5 text-center text-xs font-bold text-white bg-purple-600 rounded-xl">Sign Up</button>
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full py-2.5 text-center text-xs font-bold text-gray-700 hover:text-purple-600 bg-gray-50 hover:bg-purple-50 border border-gray-200 rounded-xl transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4 text-purple-600" />
+                <span>Dashboard</span>
+              </Link>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); openAuth('signup'); }}
+                className="w-full py-2.5 text-center text-xs font-bold text-white bg-purple-600 rounded-xl shadow-md shadow-purple-500/20"
+              >
+                Sign Up
+              </button>
             </div>
           )}
         </div>

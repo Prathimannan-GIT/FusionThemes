@@ -31,6 +31,7 @@ export default {
         sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
       },
       boxShadow: {
+        'glow-info': '0 0 35px -5px rgba(14, 165, 233, 0.35)',
         'glow-purple': '0 0 35px -5px rgba(124, 92, 245, 0.4)',
         'card-hover': '0 20px 40px -15px rgba(0, 0, 0, 0.1)',
       }

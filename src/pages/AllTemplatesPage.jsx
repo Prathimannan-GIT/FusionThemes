@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Search, Filter, SlidersHorizontal, ArrowUpDown, Layers } from 'lucide-react';
-import { templates } from '../data/templates';
-import { categories } from '../data/categories';
+import { useTemplates } from '../context/TemplateContext';
 import { useCart } from '../context/CartContext';
 import TemplateCard from '../components/TemplateCard';
 
 const AllTemplatesPage = () => {
+  const { templates, categories } = useTemplates();
   const { searchQuery, setSearchQuery } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [maxPrice, setMaxPrice] = useState(50);
@@ -87,8 +87,14 @@ const AllTemplatesPage = () => {
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     >
-                      <span>{cat.name}</span>
-                      <span className="opacity-70">{cat.count}</span>
+                      <span className="truncate pr-2">{cat.name}</span>
+                      <span className={`text-[11px] font-mono font-bold px-1.5 py-0.5 rounded-md ${
+                        selectedCategory === cat.slug
+                          ? 'bg-purple-700/80 text-white'
+                          : 'bg-gray-100 dark:bg-navy-800 text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {cat.count}
+                      </span>
                     </button>
                   ))}
                 </div>

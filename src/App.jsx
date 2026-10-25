@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -8,8 +8,6 @@ import TemplateDetail from './pages/TemplateDetail';
 import AllTemplatesPage from './pages/AllTemplatesPage';
 import PluginsPage from './pages/PluginsPage';
 import UiKitsPage from './pages/UiKitsPage';
-import BlogPage from './pages/BlogPage';
-import BlogPostPage from './pages/BlogPostPage';
 import HelpPage from './pages/HelpPage';
 import Dashboard from './pages/Dashboard';
 import LivePreviewModal from './components/LivePreviewModal';
@@ -41,11 +39,12 @@ function App() {
             <Route path="/template/:id" element={<TemplateDetail />} />
             <Route path="/plugins" element={<PluginsPage />} />
             <Route path="/ui-kits" element={<UiKitsPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:id" element={<BlogPostPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/templates" element={<AllTemplatesPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            {/* Redirect any legacy blog links to templates */}
+            <Route path="/blog" element={<Navigate to="/templates" replace />} />
+            <Route path="/blog/*" element={<Navigate to="/templates" replace />} />
           </Routes>
         </div>
 

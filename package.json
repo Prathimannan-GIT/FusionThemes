@@ -12,6 +12,8 @@
     "deploy": "npx gh-pages -d dist"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.109.0",
+    "jszip": "^3.10.2",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
