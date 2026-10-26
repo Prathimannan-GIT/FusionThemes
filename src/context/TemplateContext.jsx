@@ -1,9 +1,23 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { templates as staticTemplates } from '../data/templates';
 import { categories as staticCategories } from '../data/categories';
 import { DEVELOPERS, resolveDeveloperForTemplate, getDeveloperById } from '../data/developers';
 import { generateTemplatePackageZip } from '../utils/zipGenerator';
-import { recordOrderInDb, submitReviewToDb, toggleLikeInDb, checkDbConnection } from '../services/dbService';
+import { 
+  recordOrderInDb, 
+  submitReviewToDb, 
+  toggleLikeInDb, 
+  checkDbConnection,
+  fetchServerDiskDb,
+  saveServerDiskDb,
+  fetchTemplatesFromDb,
+  addTemplateToDb,
+  updateTemplateInDb,
+  deleteTemplateFromDb,
+  fetchOrdersFromDb,
+  fetchClientRequestsFromDb,
+  addClientRequestToDb
+} from '../services/dbService';
 import { initSupabaseClient, getSupabaseCredentials } from '../lib/supabase';
 
 const TemplateContext = createContext();
@@ -19,11 +33,10 @@ const getInitialCleanTemplates = () => {
       language: t.language || 'JavaScript (ES6+)',
       framework: t.framework || 'React 18 & Tailwind CSS',
       technologies: t.technologies || ['React 18', 'Tailwind CSS 3', 'Vite 5', 'Lucide Icons', 'ESLint'],
-      // Truly dynamic zero-state: no fabricated reviews, ratings, likes, or sales
       reviews: [],
-      rating: null, // "No ratings yet"
+      rating: null,
       reviewsCount: 0,
-      sales: 0, // Actual sales count from real purchases only
+      sales: 0,
       likes: 0,
       likedBy: [],
       isApproved: true,
@@ -32,40 +45,77 @@ const getInitialCleanTemplates = () => {
   });
 };
 
+// Safe template loader with multi-key checking and preservation of custom additions
 const getStoredTemplates = () => {
+  const cleanSeeds = getInitialCleanTemplates();
   try {
-    const saved = localStorage.getItem('fusion-dynamic-templates-v2');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+    const keys = ['fusion-dynamic-templates-v2', 'fusion-dynamic-templates', 'fusion-templates'];
+    for (const key of keys) {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const seedIds = new Set(cleanSeeds.map((t) => t.id));
+          const customTemplates = parsed.filter((t) => !seedIds.has(t.id));
+          const parsedMap = new Map(parsed.map((t) => [t.id, t]));
+          const mergedSeeds = cleanSeeds.map((seed) => {
+            const p = parsedMap.get(seed.id);
+            if (p) {
+              return {
+                ...seed,
+                reviews: p.reviews || [],
+                reviewsCount: p.reviewsCount || (p.reviews ? p.reviews.length : 0),
+                rating: p.rating !== undefined ? p.rating : null,
+                sales: p.sales || 0,
+                likes: p.likes || 0,
+                likedBy: p.likedBy || []
+              };
+            }
+            return seed;
+          });
+          return [...customTemplates, ...mergedSeeds];
+        }
       }
     }
   } catch (e) {
     console.warn('Failed to load saved templates, using clean zero-state data:', e);
   }
-  return getInitialCleanTemplates();
+  return cleanSeeds;
 };
 
 export const TemplateProvider = ({ children }) => {
   // 1. Templates Repository
   const [templates, setTemplates] = useState(getStoredTemplates);
 
-  // 2. Purchased Template IDs (Only unlocked upon successful real checkout)
+  // 2. Purchased Template IDs
   const [purchasedTemplates, setPurchasedTemplates] = useState(() => {
     try {
-      const saved = localStorage.getItem('fusion-purchased-templates-v2');
-      return saved ? JSON.parse(saved) : [];
+      const keys = ['fusion-purchased-templates-v2', 'fusion-purchased-templates'];
+      for (const k of keys) {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      }
+      return [];
     } catch {
       return [];
     }
   });
 
-  // 3. Customer / Client Purchase Orders (Real transactions)
+  // 3. Customer / Client Purchase Orders
   const [customerOrders, setCustomerOrders] = useState(() => {
     try {
-      const saved = localStorage.getItem('fusion-orders-v2');
-      return saved ? JSON.parse(saved) : [];
+      const keys = ['fusion-orders-v2', 'fusion-orders'];
+      for (const k of keys) {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      }
+      return [];
     } catch {
       return [];
     }
@@ -74,8 +124,15 @@ export const TemplateProvider = ({ children }) => {
   // 4. Client Custom Project Requests / Briefs
   const [clientRequests, setClientRequests] = useState(() => {
     try {
-      const saved = localStorage.getItem('fusion-client-requests-v2');
-      return saved ? JSON.parse(saved) : [];
+      const keys = ['fusion-client-requests-v2', 'fusion-client-requests'];
+      for (const k of keys) {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      }
+      return [];
     } catch {
       return [];
     }
@@ -84,8 +141,15 @@ export const TemplateProvider = ({ children }) => {
   // 5. Client-to-Developer Chat Conversations
   const [conversations, setConversations] = useState(() => {
     try {
-      const saved = localStorage.getItem('fusion-conversations-v2');
-      return saved ? JSON.parse(saved) : [];
+      const keys = ['fusion-conversations-v2', 'fusion-conversations'];
+      for (const k of keys) {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      }
+      return [];
     } catch {
       return [];
     }
@@ -94,8 +158,15 @@ export const TemplateProvider = ({ children }) => {
   // 6. Chat Messages
   const [messages, setMessages] = useState(() => {
     try {
-      const saved = localStorage.getItem('fusion-chat-messages-v2');
-      return saved ? JSON.parse(saved) : [];
+      const keys = ['fusion-chat-messages-v2', 'fusion-chat-messages'];
+      for (const k of keys) {
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      }
+      return [];
     } catch {
       return [];
     }
@@ -115,11 +186,11 @@ export const TemplateProvider = ({ children }) => {
   const [systemSettings, setSystemSettings] = useState(() => {
     const defaultSettings = {
       centralDeveloperEmail: 'dev-notifications@fusionthemes.com',
-      platformCommission: 15, // 15% platform fee, 85% developer royalty split
+      platformCommission: 15,
       supportEmail: 'support@fusionthemes.com',
       enableEmailAlerts: true,
       paymentConfig: {
-        mode: 'test', // 'test' (Stripe Sandbox) or 'live' (Stripe Production Merchant)
+        mode: 'test',
         stripePublishableKey: '',
         stripeSecretKey: '',
         currency: 'USD'
@@ -197,14 +268,92 @@ export const TemplateProvider = ({ children }) => {
     message: ''
   });
 
+  // Refresh status and hydrate from PostgreSQL
   const refreshDbStatus = async () => {
     const status = await checkDbConnection();
     setDbStatus(status);
+    if (status.connected) {
+      try {
+        const liveTemplates = await fetchTemplatesFromDb();
+        if (liveTemplates && liveTemplates.length > 0) {
+          setTemplates((prev) => {
+            const liveMap = new Map(liveTemplates.map((t) => [t.id, t]));
+            const updated = prev.map((t) => (liveMap.get(t.id) ? { ...t, ...liveMap.get(t.id) } : t));
+            const existingIds = new Set(prev.map((t) => t.id));
+            const newlyAdded = liveTemplates.filter((t) => !existingIds.has(t.id));
+            return [...newlyAdded, ...updated];
+          });
+        }
+        const liveOrders = await fetchOrdersFromDb();
+        if (liveOrders && liveOrders.length > 0) {
+          setCustomerOrders(liveOrders);
+        }
+        const liveRequests = await fetchClientRequestsFromDb();
+        if (liveRequests && liveRequests.length > 0) {
+          setClientRequests(liveRequests);
+        }
+      } catch (e) {
+        console.warn('Could not hydrate tables from live DB:', e);
+      }
+    }
     return status;
   };
 
+  // ==================== MULTI-TIER RECOVERY & HYDRATION ON MOUNT ====================
   useEffect(() => {
-    refreshDbStatus();
+    let isMounted = true;
+
+    const hydrateAllSources = async () => {
+      // 1. First, hydrate from Server Disk Database (src/data/live_db.json)
+      try {
+        const diskDb = await fetchServerDiskDb();
+        if (isMounted && diskDb) {
+          if (Array.isArray(diskDb.templates) && diskDb.templates.length > 0) {
+            setTemplates((prev) => {
+              const diskMap = new Map(diskDb.templates.map((t) => [t.id, t]));
+              const updated = prev.map((t) => (diskMap.get(t.id) ? { ...t, ...diskMap.get(t.id) } : t));
+              const prevIds = new Set(prev.map((t) => t.id));
+              const newlyAdded = diskDb.templates.filter((t) => !prevIds.has(t.id));
+              return [...newlyAdded, ...updated];
+            });
+          }
+          if (Array.isArray(diskDb.customerOrders) && diskDb.customerOrders.length > 0) {
+            setCustomerOrders(diskDb.customerOrders);
+            const purchasedItemIds = diskDb.customerOrders.flatMap((o) => (o.items || []).map((it) => it.id));
+            setPurchasedTemplates((prev) => Array.from(new Set([...prev, ...purchasedItemIds, ...(diskDb.purchasedTemplates || [])])));
+          } else if (Array.isArray(diskDb.purchasedTemplates) && diskDb.purchasedTemplates.length > 0) {
+            setPurchasedTemplates(diskDb.purchasedTemplates);
+          }
+          if (Array.isArray(diskDb.clientRequests) && diskDb.clientRequests.length > 0) {
+            setClientRequests(diskDb.clientRequests);
+          }
+          if (Array.isArray(diskDb.conversations) && diskDb.conversations.length > 0) {
+            setConversations(diskDb.conversations);
+          }
+          if (Array.isArray(diskDb.messages) && diskDb.messages.length > 0) {
+            setMessages(diskDb.messages);
+          }
+          if (Array.isArray(diskDb.registeredClients) && diskDb.registeredClients.length > 0) {
+            setRegisteredClients(diskDb.registeredClients);
+          }
+        }
+      } catch (err) {
+        console.warn('Server disk database notice:', err);
+      }
+
+      // 2. Second, verify and hydrate from PostgreSQL / Supabase
+      try {
+        await refreshDbStatus();
+      } catch (err) {
+        console.warn('Supabase status check notice:', err);
+      }
+    };
+
+    hydrateAllSources();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // ==================== PERSISTENCE EFFECTS ====================
@@ -287,6 +436,37 @@ export const TemplateProvider = ({ children }) => {
       console.error('Failed to save registered clients:', e);
     }
   }, [registeredClients]);
+
+  // Debounced auto-save to server disk database
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveServerDiskDb({
+        templates,
+        purchasedTemplates,
+        customerOrders,
+        clientRequests,
+        conversations,
+        messages,
+        emailNotifications,
+        systemSettings,
+        activityLogs,
+        registeredClients
+      }).catch(() => {});
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [
+    templates,
+    purchasedTemplates,
+    customerOrders,
+    clientRequests,
+    conversations,
+    messages,
+    emailNotifications,
+    systemSettings,
+    activityLogs,
+    registeredClients
+  ]);
 
   // Log an activity event
   const logActivity = (action, description, actor = 'System', metadata = null) => {
@@ -373,30 +553,46 @@ export const TemplateProvider = ({ children }) => {
 
     setTemplates((prev) => [newTemplate, ...prev]);
     logActivity('Template Uploaded', `Developer ${dev.name} published "${newTemplate.title}" to ${cat.name}`, dev.name);
+
+    // 1. Immediately save to server disk file database (src/data/live_db.json)
+    saveServerDiskDb({
+      templates: [newTemplate, ...templates]
+    }).catch(() => {});
+
+    // 2. Immediately commit to live PostgreSQL tables if connected
+    addTemplateToDb(newTemplate).catch(() => {});
+
     return newTemplate;
   };
 
   // 2. Update existing template
   const updateTemplate = (templateId, updatedFields) => {
-    setTemplates((prev) =>
-      prev.map((t) => {
+    let updatedTemplateObj = null;
+    setTemplates((prev) => {
+      const updated = prev.map((t) => {
         if (t.id === templateId) {
           const cat = updatedFields.category
             ? categories.find((c) => c.slug === updatedFields.category || c.id === updatedFields.category) || categories[0]
             : null;
 
-          return {
+          updatedTemplateObj = {
             ...t,
             ...updatedFields,
             categoryName: cat ? cat.name : t.categoryName,
             price: updatedFields.price !== undefined ? Number(updatedFields.price) : t.price,
             updatedAt: new Date().toISOString().split('T')[0]
           };
+          return updatedTemplateObj;
         }
         return t;
-      })
-    );
+      });
+      return updated;
+    });
+
     logActivity('Template Updated', `Template ID: ${templateId} modified`, 'Developer');
+    if (updatedTemplateObj) {
+      updateTemplateInDb(templateId, updatedTemplateObj).catch(() => {});
+    }
   };
 
   // 3. Delete template
@@ -404,6 +600,7 @@ export const TemplateProvider = ({ children }) => {
     const target = templates.find((t) => t.id === templateId);
     setTemplates((prev) => prev.filter((t) => t.id !== templateId));
     logActivity('Template Removed', `Template "${target?.title || templateId}" was removed from the marketplace`, 'Developer / Admin');
+    deleteTemplateFromDb(templateId).catch(() => {});
   };
 
   // ==================== DYNAMIC LIKES ====================
@@ -613,6 +810,11 @@ export const TemplateProvider = ({ children }) => {
 
     setClientRequests((prev) => [newReq, ...prev]);
     logActivity('Project Brief Posted', `Client "${newReq.clientName}" requested project: "${newReq.title}"`, newReq.clientName);
+    
+    // Immediately persist to disk and PostgreSQL
+    addClientRequestToDb(newReq).catch(() => {});
+    saveServerDiskDb({ clientRequests: [newReq, ...clientRequests] }).catch(() => {});
+
     return newReq;
   };
 
@@ -952,6 +1154,27 @@ export const TemplateProvider = ({ children }) => {
     ]);
   };
 
+  // Sync entire local dataset to PostgreSQL / Supabase
+  const syncAllToDatabase = async () => {
+    const status = await checkDbConnection();
+    if (!status.connected) {
+      return { success: false, message: 'PostgreSQL database is not connected. Enter Supabase URL and Anon Key in Dashboard.' };
+    }
+    try {
+      let count = 0;
+      for (const t of templates) {
+        await addTemplateToDb(t);
+        count++;
+      }
+      for (const r of clientRequests) {
+        await addClientRequestToDb(r);
+      }
+      return { success: true, count, message: `Successfully synchronized ${count} templates & records to live PostgreSQL database tables!` };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
   return (
     <TemplateContext.Provider
       value={{
@@ -989,7 +1212,8 @@ export const TemplateProvider = ({ children }) => {
         dbStatus,
         refreshDbStatus,
         initSupabaseClient,
-        getSupabaseCredentials
+        getSupabaseCredentials,
+        syncAllToDatabase
       }}
     >
       {children}

@@ -75,13 +75,14 @@ const Dashboard = () => {
     dbStatus,
     refreshDbStatus,
     initSupabaseClient,
-    getSupabaseCredentials
+    getSupabaseCredentials,
+    syncAllToDatabase
   } = useTemplates();
 
   const navigate = useNavigate();
 
-  // Tab State
-  const initialTab = searchParams.get('tab') || 'overview';
+  // Tab State - remembered across page reloads
+  const initialTab = searchParams.get('tab') || localStorage.getItem('fusion-dashboard-tab') || 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Chat conversation active selection
@@ -102,6 +103,7 @@ const Dashboard = () => {
   const [dbUrlInput, setDbUrlInput] = useState(initialDbCreds.url || '');
   const [dbKeyInput, setDbKeyInput] = useState(initialDbCreds.key || '');
   const [isTestingDb, setIsTestingDb] = useState(false);
+  const [isSyncingDb, setIsSyncingDb] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
 
   // New Client Request State
@@ -292,6 +294,18 @@ const Dashboard = () => {
       showNotification('Successfully connected to live PostgreSQL tables!', 'success');
     } else {
       showNotification(res.message || 'Saved database credentials.', 'info');
+    }
+  };
+
+  const handleSyncToDb = async () => {
+    setIsSyncingDb(true);
+    const res = await syncAllToDatabase();
+    setIsSyncingDb(false);
+    if (res.success) {
+      showNotification(res.message, 'success');
+      await refreshDbStatus();
+    } else {
+      showNotification(res.message, 'error');
     }
   };
 
@@ -1831,6 +1845,16 @@ CREATE TABLE IF NOT EXISTS client_requests (id UUID PRIMARY KEY DEFAULT gen_rand
                   >
                     <FileCode className="w-4 h-4" />
                     <span>{copiedSql ? '✓ SQL Copied to Clipboard!' : 'Copy SQL Schema (All 10 Tables)'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSyncToDb}
+                    disabled={isSyncingDb}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Database className="w-4 h-4" />
+                    <span>{isSyncingDb ? 'Syncing All Tables...' : 'Sync Local Data to PostgreSQL Tables'}</span>
                   </button>
                 </div>
               </form>

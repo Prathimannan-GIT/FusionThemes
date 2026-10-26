@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchServerDiskDb, saveServerDiskDb } from '../services/dbService';
 
 const CartContext = createContext();
 
@@ -19,7 +20,14 @@ export const CartProvider = ({ children }) => {
   const [livePreviewTemplate, setLivePreviewTemplate] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
-  const [bookmarks, setBookmarks] = useState([]);
+  const [bookmarks, setBookmarks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fusion-bookmarks');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [notification, setNotification] = useState(null);
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -30,19 +38,70 @@ export const CartProvider = ({ children }) => {
     }
   });
 
+  // Restore session, cart, bookmarks from server disk database if Chrome data was deleted
+  useEffect(() => {
+    let isMounted = true;
+    const restoreDiskSession = async () => {
+      try {
+        const diskDb = await fetchServerDiskDb();
+        if (isMounted && diskDb) {
+          if (!currentUser && diskDb.lastActiveUser) {
+            setCurrentUser(diskDb.lastActiveUser);
+            try {
+              localStorage.setItem('fusion-user', JSON.stringify(diskDb.lastActiveUser));
+            } catch {}
+          }
+          if (cartItems.length === 0 && Array.isArray(diskDb.cartItems) && diskDb.cartItems.length > 0) {
+            setCartItems(diskDb.cartItems);
+          }
+          if (bookmarks.length === 0 && Array.isArray(diskDb.bookmarks) && diskDb.bookmarks.length > 0) {
+            setBookmarks(diskDb.bookmarks);
+          }
+        }
+      } catch {}
+    };
+    restoreDiskSession();
+    return () => { isMounted = false; };
+  }, []);
+
   const loginUser = (user) => {
     setCurrentUser(user);
-    localStorage.setItem('fusion-user', JSON.stringify(user));
+    try {
+      localStorage.setItem('fusion-user', JSON.stringify(user));
+    } catch (e) {
+      console.error('Failed to save user:', e);
+    }
+    // Also persist session to server disk database
+    saveServerDiskDb({ lastActiveUser: user }).catch(() => {});
   };
 
   const logoutUser = () => {
     setCurrentUser(null);
-    localStorage.removeItem('fusion-user');
+    try {
+      localStorage.removeItem('fusion-user');
+    } catch {}
+    saveServerDiskDb({ lastActiveUser: null }).catch(() => {});
   };
 
   useEffect(() => {
-    localStorage.setItem('fusion-cart', JSON.stringify(cartItems));
+    try {
+      localStorage.setItem('fusion-cart', JSON.stringify(cartItems));
+    } catch (e) {
+      console.error('Failed to save cart:', e);
+    }
+    // Save to disk database
+    if (cartItems.length > 0) {
+      saveServerDiskDb({ cartItems }).catch(() => {});
+    }
   }, [cartItems]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('fusion-bookmarks', JSON.stringify(bookmarks));
+    } catch (e) {
+      console.error('Failed to save bookmarks:', e);
+    }
+  }, [bookmarks]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });

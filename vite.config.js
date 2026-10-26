@@ -1,12 +1,87 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
+import path from 'path';
+
+// Custom disk database persistence plugin for Vite dev server
+const databaseApiPlugin = () => ({
+  name: 'database-api-plugin',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const isDbRoute = req.url.startsWith('/api/db') || req.url.startsWith('/FusionThemes/api/db');
+      if (!isDbRoute) {
+        return next();
+      }
+
+      const dbFilePath = path.resolve(__dirname, 'src/data/live_db.json');
+
+      if (req.method === 'GET') {
+        try {
+          if (fs.existsSync(dbFilePath)) {
+            const content = fs.readFileSync(dbFilePath, 'utf-8');
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(content);
+            return;
+          } else {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, error: 'Database file not found' }));
+            return;
+          }
+        } catch (err) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ success: false, error: err.message }));
+          return;
+        }
+      }
+
+      if (req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body);
+            if (typeof data === 'object' && data !== null) {
+              let existing = {};
+              if (fs.existsSync(dbFilePath)) {
+                try { existing = JSON.parse(fs.readFileSync(dbFilePath, 'utf-8')); } catch {}
+              }
+              const merged = { ...existing, ...data };
+              fs.writeFileSync(dbFilePath, JSON.stringify(merged, null, 2), 'utf-8');
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ success: true, savedAt: new Date().toISOString() }));
+              return;
+            } else {
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ success: false, error: 'Invalid database payload' }));
+              return;
+            }
+          } catch (err) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, error: err.message }));
+            return;
+          }
+        });
+        return;
+      }
+
+      next();
+    });
+  }
+});
 
 // Custom backend payment processor plugin for Vite dev server
 const paymentApiPlugin = () => ({
   name: 'payment-api-plugin',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      if (req.url === '/api/payments/process' && req.method === 'POST') {
+      const isPaymentRoute = req.url === '/api/payments/process' || req.url === '/FusionThemes/api/payments/process';
+      if (isPaymentRoute && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => { body += chunk; });
         req.on('end', () => {
@@ -120,7 +195,7 @@ const paymentApiPlugin = () => ({
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), paymentApiPlugin()],
+  plugins: [react(), paymentApiPlugin(), databaseApiPlugin()],
   base: '/FusionThemes/',
   server: {
     port: 3000,
